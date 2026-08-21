@@ -22,8 +22,9 @@ Each stage is covered in its own section below.
 - [3. How to Run: Generating Events](#3-how-to-run-generating-events)
 - [4. Clustering HepMC Output into .dat Files](#4-clustering-hepmc-output-into-dat-files)
 - [5. Create Lund Trees](#5-create-lund-trees)
-- [6. Plotting](#6-plotting)
-- [7. Full Workflow (Summary)](#7-full-workflow-summary)
+- [6. Create Lund Images](#6-create-lund-images)
+- [7. Plotting & Statistical Comparison](#7-plotting--statistical-comparison)
+- [8. Full Workflow (Summary)](#8-full-workflow-summary)
 
 ## 1. Installation
 
@@ -145,9 +146,20 @@ python3 lund_tree.py <herwig_directory>/ output_herwig.jsonl
 
 where `<herwig_directory>/` is the directory containing the Herwig `.dat` files, and `output_herwig.jsonl` is the resulting Lund-tree file.
 
-## 6. Plotting
+## 6. Create Lund Images
 
-Plotting of the Lund images is done in the parent directory, in a notebook called `Plot.ipynb`.
+Once the Lund trees (`output_pythia.jsonl` / `output_herwig.jsonl`) have been created from the previous step, use `Create_Lund_Images.py` to generate the Lund images from them.
+
+Unlike `lund_tree.py`, this script does not take command-line arguments — open it and adjust the input and output paths inside the code itself before running it:
+
+```bash
+python Create_Lund_Images.py
+```
+
+## 7. Plotting & Statistical Comparison
+
+Once the Lund images for both Pythia and Herwig have been created, use the notebook `plot_comaper_images.ipynb` to statistically compare the Pythia and Herwig images.
+
 
 ## 7. Full Workflow (Summary)
 
