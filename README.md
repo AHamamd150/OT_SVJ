@@ -4,7 +4,7 @@ Installation and run guide — removing event-generator dependence from Lund-pla
 
 ## Overview
 
-This pipeline removes event-generator effects from Lund-plane analysis of SVJs by comparing Pythia and Herwig outputs using Optimal Transport. Event generation is split between two people: Hammad generates the Herwig samples, and Christiane generates the Pythia samples.
+This pipeline removes event-generator effects from Lund-plane analysis of SVJs by comparing Pythia and Herwig outputs using Optimal Transport. Event generation is split between two people: Ahmed  and Christiane.
 
 The pipeline has four stages:
 
