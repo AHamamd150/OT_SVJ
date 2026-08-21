@@ -90,7 +90,6 @@ source herwig/bin/activate
 
    `-N` sets the number of events (30000 above) and `-s` sets the random seed (1234 above).
 
-   > **Note:** The original handwritten notes included one or two additional flags after `-s 1234` that were not fully legible. If your run needs a specific thread count or debug flag, check `Herwig run --help` and add it here.
 
 ### 3.2 Pythia 8
 
