@@ -63,12 +63,6 @@ Run the bootstrap script to build Herwig, skipping the optional add-ons that are
 
 ## 2. Working Directory & Activating the Environment
 
-All work for this pipeline happens under the following directory on host `pmu4`:
-
-```
-pmu4:/data1/Hammad/OT
-```
-
 Every time you start a new session, activate the Herwig environment from inside this directory before doing anything else:
 
 ```bash
