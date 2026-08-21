@@ -1,0 +1,166 @@
+##############################################################################
+# HERWIG 7 -- pp -> QCD dijets
+#
+# Written to match, parameter for parameter, the Pythia 8.317 card
+# used for the companion sample:
+#
+#     sqrt(s)  = 13 TeV
+#     pTHat    = 500 -- 550 GeV
+#     PDF      = LHAPDF6:NNPDF31_lo_as_0118
+#     alpha_s  = 0.118, one-loop running, ISR and FSR
+#     MPI, ISR, FSR, hadronization and decays all ON
+#     HepMC3 output
+#
+#   Herwig read QCD_dijet_herwig.in
+#   Herwig run  QCD_dijet_herwig.run -N 1000000 -s 1234
+#
+# Lines marked CHECK use object/interface names that depend on your Herwig
+# version; verify them against your install before trusting the sample.
+# A wrong name normally makes `Herwig read` fail, which is the safe outcome.
+#
+# See the notes at the bottom: several Pythia settings have NO exact Herwig
+# equivalent, and pretending otherwise would bias the comparison.
+##############################################################################
+
+##################################################
+# Beams:  idA = idB = 2212,  eCM = 13000
+##################################################
+read snippets/PPCollider.in
+
+cd /Herwig/Generators
+set EventGenerator:EventHandler:LuminosityFunction:Energy 13000.0*GeV
+set EventGenerator:NumberOfEvents 1000000
+set EventGenerator:RandomNumberGenerator:Seed 31122001
+set EventGenerator:MaxErrors 10000
+
+# Pythia: Next:numberShowInfo = 10000 / numberShowProcess = 0 / numberShowEvent = 0
+set EventGenerator:PrintEvent 0
+set EventGenerator:DebugLevel 0
+
+##################################################
+# Hard process:  HardQCD:all = on
+##################################################
+cd /Herwig/MatrixElements
+insert SubProcess:MatrixElements[0] MEQCD2to2
+
+# CHECK -- flavour content.  Pythia's HardQCD:all covers the light-flavour
+# 2->2 set; gg->ccbar and gg->bbbar are enabled separately via
+# HardQCD:hardccbar / HardQCD:hardbbbar, which your card does NOT set.
+# Herwig's MEQCD2to2 defaults to MaximumFlavour = 5.  To match the Pythia
+# card as written, restrict it:
+set MEQCD2to2:MaximumFlavour 3
+# (If you meant to include heavy flavour, set 5 here AND add
+#  HardQCD:hardccbar = on / HardQCD:hardbbbar = on to the Pythia card.)
+
+##################################################
+# Hard-process pT range:  pTHatMin = 500, pTHatMax = 550
+#
+# For a massless 2->2 the two outgoing partons share one pT, so Herwig's
+# per-jet kT window is equivalent to Pythia's pTHat window at LO.
+##################################################
+cd /Herwig/Cuts
+set JetKtCut:MinKT 500.0*GeV
+set JetKtCut:MaxKT 550.0*GeV
+set Cuts:MHatMin     0.0*GeV
+set JetKtCut:MinEta -10.0
+set JetKtCut:MaxEta  10.0
+
+##################################################
+# PDF:  LHAPDF6:NNPDF31_lo_as_0118
+#
+# Must be set for the beams, the shower AND the remnant/MPI, otherwise
+# Herwig silently keeps its default (CT14LO) in the components you missed.
+##################################################
+cd /Herwig/Partons
+create ThePEG::LHAPDF myPDF HwLHAPDF.so
+set myPDF:PDFName NNPDF31_lo_as_0118
+set myPDF:RemnantHandler /Herwig/Partons/HadronRemnants
+
+set /Herwig/Particles/p+:PDF    myPDF
+set /Herwig/Particles/pbar-:PDF myPDF
+
+# CHECK -- extractor name is PPExtractor in most 7.x releases
+set /Herwig/Partons/PPExtractor:FirstPDF  myPDF
+set /Herwig/Partons/PPExtractor:SecondPDF myPDF
+
+set /Herwig/Shower/ShowerHandler:PDFA myPDF
+set /Herwig/Shower/ShowerHandler:PDFB myPDF
+
+# MPI uses its own PDF pointers; leaving these unset is a common silent
+# mismatch.  CHECK the names against your version.
+set /Herwig/Shower/ShowerHandler:PDFARemnant myPDF
+set /Herwig/Shower/ShowerHandler:PDFBRemnant myPDF
+
+##################################################
+# alpha_s:  value 0.118, one-loop running, ISR and FSR
+##################################################
+# Herwig 7.3 separates the ISR and FSR couplings:
+set /Herwig/Shower/AlphaQCDISR:AlphaIn 0.118
+set /Herwig/Shower/AlphaQCDISR:NumberOfLoops 1
+set /Herwig/Shower/AlphaQCDFSR:AlphaIn 0.118
+set /Herwig/Shower/AlphaQCDFSR:NumberOfLoops 1
+
+# Herwig 7.2 and earlier use a single object instead -- uncomment if the
+# two lines above fail:
+# set /Herwig/Shower/AlphaQCD:AlphaMZ 0.118
+# set /Herwig/Shower/AlphaQCD:NumberOfLoops 1
+
+# Herwig applies the CMW/MC-scheme rescaling to the shower coupling by
+# default; Pythia's alphaSvalue is the MSbar value with no such factor.
+# For a like-for-like coupling, disable it (CHECK interface name):
+# set /Herwig/Shower/AlphaQCDISR:CMWScheme No
+# set /Herwig/Shower/AlphaQCDFSR:CMWScheme No
+
+##################################################
+# ISR / FSR / MPI / hadronization / decays -- all ON
+#
+# All four are Herwig defaults, so nothing needs switching on.  The lines
+# below are the OFF switches, kept commented for the ablation samples that
+# separate shower effects from hadronization effects.
+##################################################
+# set /Herwig/Shower/ShowerHandler:MPIHandler NULL                    # MPI off
+# set /Herwig/EventHandlers/EventHandler:HadronizationHandler NULL    # hadronization off
+# set /Herwig/EventHandlers/EventHandler:DecayHandler NULL            # decays off
+
+##################################################
+# HepMC3 output
+##################################################
+read snippets/HepMC.in
+set /Herwig/Analysis/HepMC:PrintEvent 1000000
+set /Herwig/Analysis/HepMC:Filename herwig_qcd_dijet.hepmc3
+set /Herwig/Analysis/HepMC:Format GenEvent
+set /Herwig/Analysis/HepMC:Units GeV_mm
+
+##################################################
+# Save
+##################################################
+cd /Herwig/Generators
+saverun QCD_dijet_herwig EventGenerator
+
+##############################################################################
+# WHAT CANNOT BE MATCHED
+#
+# 1. SHOWER ALGORITHM.  Pythia uses a pT-ordered dipole shower; Herwig uses an
+#    angular-ordered shower with a different evolution variable, different
+#    recoil scheme and a different infrared cutoff.  Setting alphaSvalue and
+#    alphaSorder equal makes the COUPLING comparable, not the SHOWER.  This is
+#    an irreducible difference and is precisely the effect being studied.
+#
+# 2. TUNES.  Pythia is running its Monash defaults; Herwig its own default
+#    tune.  Both tunes were fitted with their own default PDF, so overriding
+#    the PDF to NNPDF31_lo detunes BOTH generators, Herwig more visibly (its
+#    default is CT14LO).  The MPI parameters in particular are no longer at
+#    their tuned values.  This is defensible for a controlled comparison, but
+#    it must be stated in the paper -- the samples are not "each generator at
+#    its best", they are "both generators with common inputs".
+#
+# 3. SHOWER CUTOFF.  Pythia's TimeShower:pTmin and Herwig's pTmin are
+#    different quantities in different schemes and cannot be equated.  Both
+#    are left at their defaults above.
+#
+# 4. STABLE-PARTICLE DEFINITION.  Both generators decay hadrons by default,
+#    but the lifetime thresholds and the treatment of K_S0 / Lambda differ.
+#    Confirm the two HepMC files agree on which particles reach the detector,
+#    otherwise part of your "generator effect" is a bookkeeping difference.
+#    Check: multiplicity of status-1 K_S0 and Lambda in each sample.
+##############################################################################

@@ -1,0 +1,93 @@
+! ============================================================
+! PYTHIA 8.317 -- pp -> QCD dijets
+! sqrt(s) = 13 TeV,  pThat = 500--550 GeV
+!
+! Run with the main144 driver (see notes at the bottom):
+!   ./main144 -c QCD_dijet_pythia.cmnd -o pythia_qcd_dijet -n 1000000 -s 1234
+! ============================================================
+
+! Number of events (can be overridden with -n on the command line)
+Main:numberOfEvents = 1000000
+
+! Beams
+Beams:idA = 2212
+Beams:idB = 2212
+Beams:eCM = 13000.
+
+! Hard QCD 2 -> 2 processes
+HardQCD:all = on
+
+! Hard-process pT range
+PhaseSpace:pTHatMin = 500.
+PhaseSpace:pTHatMax = 550.
+
+! ============================================================
+! PDF
+! ============================================================
+PDF:pSet = LHAPDF6:NNPDF31_lo_as_0118
+
+! ============================================================
+! QCD coupling
+! ============================================================
+SpaceShower:alphaSorder = 1
+TimeShower:alphaSorder  = 1
+SpaceShower:alphaSvalue = 0.118
+TimeShower:alphaSvalue  = 0.118
+
+! ============================================================
+! MPI / ISR / FSR
+! ============================================================
+PartonLevel:MPI = on
+PartonLevel:ISR = on
+PartonLevel:FSR = on
+
+! ============================================================
+! Hadronization and decays
+! ============================================================
+HadronLevel:Hadronize = on
+HadronLevel:Decay     = on
+
+! ============================================================
+! Random seed (or use -s on the command line)
+! ============================================================
+Random:setSeed = on
+Random:seed    = 1234
+
+! ============================================================
+! Output
+! ============================================================
+Next:numberCount        = 100
+!Next:numberShowInfo    = 10000
+Next:numberShowProcess = 0
+Next:numberShowEvent   = 0
+
+! ---- HepMC3 -------------------------------------------------
+! NOTE: "HepMC3:file = ..." is NOT a Pythia setting and does nothing.
+! The switch below is read by the main144 driver; the FILENAME comes from
+! the -o command-line argument, which produces <prefix>.hepmc
+Main:writeHepMC = on
+
+! Optional HepMC content flags
+!HepMC:storePDF          = true
+!HepMC:storeProcess      = true
+!HepMC:printInconsistency = true
+
+! ============================================================
+! HOW TO RUN
+! ============================================================
+! main144 is Pythia 8.3's generic driver: read a run card, write HepMC.
+! (It was called main93 in earlier 8.3 releases.)
+!
+!   cd $PYTHIA8/examples
+!   make main144                    # needs Pythia linked against HepMC3
+!   ./main144 -h                    # confirm the option letters for your build
+!   ./main144 -c /path/QCD_dijet_pythia.cmnd -o pythia_qcd_dijet -n 1000000
+!
+! -c  run card    -o  output prefix    -n  events    -s  seed    -l  no splash
+!
+! If `make main144` fails with missing HepMC symbols, Pythia was configured
+! without HepMC3.  Reconfigure:
+!   ./configure --with-hepmc3=/path/to/hepmc3 --with-lhapdf6=/path/to/lhapdf
+!
+! Then feed the result to Delphes with the SAME card used for Herwig:
+!   DelphesHepMC3 delphes_card_CMS.tcl pythia_qcd_dijet.root pythia_qcd_dijet.hepmc
